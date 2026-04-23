@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Feedback extends Model
 {
@@ -13,7 +14,7 @@ class Feedback extends Model
 
     protected $fillable = ['name', 'email', 'rating', 'comment', 'mosque_id'];
 
-    public function mosque()
+    public function mosque(): BelongsTo
     {
         return $this->belongsTo(Mosque::class);
     }

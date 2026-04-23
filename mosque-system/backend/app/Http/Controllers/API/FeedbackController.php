@@ -4,11 +4,12 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Feedback;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class FeedbackController extends Controller
 {
-    public function index()
+    public function index(): JsonResponse
     {
         $feedbacks = Feedback::with('mosque:id,mosque_name')
             ->latest()
@@ -17,7 +18,7 @@ class FeedbackController extends Controller
         return response()->json($feedbacks);
     }
 
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
             'name'      => 'nullable|string|max:100',
