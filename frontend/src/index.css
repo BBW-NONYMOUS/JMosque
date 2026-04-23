@@ -1,0 +1,257 @@
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+
+@theme {
+  --color-primary: #166534;
+  --color-primary-dark: #14532d;
+  --color-primary-light: #15803d;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply min-h-screen text-slate-800 antialiased;
+    overflow-x: hidden;
+    background-color: #ffffff;
+    font-family: 'Poppins', 'Inter', 'Segoe UI', sans-serif;
+    font-weight: 400;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: 'Poppins', 'Inter', sans-serif;
+    font-weight: 700;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    @apply outline-none;
+    font-family: 'Poppins', 'Inter', sans-serif;
+  }
+}
+
+@layer components {
+  .section-shell {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .card-surface {
+    @apply rounded-2xl border border-slate-100 bg-white shadow-sm;
+  }
+
+  .label-chip {
+    @apply inline-flex items-center rounded-full bg-green-100 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-green-800;
+  }
+
+  .field-label {
+    @apply text-sm font-semibold uppercase tracking-[0.18em] text-slate-500;
+  }
+
+  .field-input {
+    @apply w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-700 transition
+      placeholder:text-slate-400
+      focus:border-green-500 focus:ring-4 focus:ring-green-100;
+  }
+
+  /* Primary button — dark green, rounded corners, proper size, shadow + hover */
+  .btn-primary {
+    @apply inline-flex items-center gap-2 rounded-xl bg-green-800 px-6 py-3 text-sm font-semibold text-white
+      shadow-md transition-all duration-200 ease-out
+      hover:-translate-y-0.5 hover:bg-green-900 hover:shadow-xl hover:ring-2 hover:ring-green-400/30
+      active:translate-y-0 active:scale-[0.97] active:bg-green-950 active:shadow-sm
+      focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-green-300/50;
+  }
+
+  /* Secondary button — outlined dark green, rounded corners */
+  .btn-secondary {
+    @apply inline-flex items-center gap-2 rounded-xl border-2 border-green-800 bg-white px-6 py-3 text-sm font-semibold text-green-800
+      shadow-sm transition
+      hover:-translate-y-0.5 hover:bg-green-50 hover:shadow-md
+      active:translate-y-0;
+  }
+
+  /* Danger button */
+  .btn-danger {
+    @apply inline-flex items-center gap-2 rounded-xl bg-rose-600 px-6 py-3 text-sm font-semibold text-white
+      shadow-md transition hover:-translate-y-0.5 hover:bg-rose-700 hover:shadow-lg;
+  }
+
+  .page-heading {
+    @apply text-3xl font-black leading-tight text-slate-900 sm:text-4xl;
+  }
+
+  /* Skeleton shimmer animation */
+  .skeleton {
+    @apply animate-pulse rounded-xl bg-gray-200;
+  }
+
+  /* Admin-specific components kept from original */
+  .add-cta-icon {
+    animation: add-icon-float 2.4s ease-in-out infinite;
+    transform-origin: center;
+  }
+
+  .poster-board {
+    @apply overflow-hidden rounded-[2rem] border border-sky-100 bg-[linear-gradient(180deg,#edf6ff_0%,#ffffff_38%,#edf5ff_100%)] p-3 shadow-[0_24px_60px_rgba(15,94,156,0.15)] md:p-5;
+  }
+
+  .poster-hero {
+    @apply space-y-6;
+  }
+
+  .poster-title-panel {
+    @apply relative overflow-hidden rounded-[1.9rem] border border-blue-800 bg-[linear-gradient(135deg,#224880_0%,#183a73_52%,#2f6ba7_100%)] px-5 py-8 shadow-[inset_0_1px_0_rgba(255,255,255,0.25)];
+  }
+
+  .poster-title-lines {
+    @apply pointer-events-none absolute inset-x-0 top-4 h-1 bg-white/50 shadow-[0_118px_0_rgba(255,255,255,0.32)];
+  }
+
+  .poster-built-strip {
+    @apply flex flex-col items-center justify-center gap-4 rounded-[1.7rem] border border-sky-100 bg-[linear-gradient(90deg,#f7fbff_0%,#ffffff_38%,#f1f8ff_100%)] px-5 py-5 text-center shadow-[0_14px_30px_rgba(15,94,156,0.08)] md:flex-row;
+  }
+
+  .poster-arrow {
+    @apply h-0 w-0 border-y-[14px] border-l-[24px] border-y-transparent border-l-sky-200;
+  }
+
+  .poster-tech-pill {
+    @apply inline-flex rounded-full border border-slate-200 bg-white px-5 py-2 text-lg font-black shadow-sm;
+  }
+
+  .poster-panel {
+    @apply rounded-[1.9rem] border border-sky-100 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(233,244,255,0.84))] p-4 shadow-[0_16px_35px_rgba(15,94,156,0.09)] md:p-6;
+  }
+
+  .poster-dashed {
+    @apply border-dashed;
+  }
+
+  .poster-bar {
+    @apply mb-5 rounded-[1rem] bg-[linear-gradient(90deg,#244b84_0%,#315f99_100%)] px-5 py-3 text-center text-lg font-black uppercase tracking-[0.08em] text-white shadow-[0_14px_28px_rgba(36,75,132,0.18)];
+  }
+
+  .poster-actor-card {
+    @apply rounded-[1.6rem] border border-sky-100 bg-white/90 p-5 text-center shadow-[0_10px_22px_rgba(15,94,156,0.08)];
+  }
+
+  .poster-avatar {
+    @apply mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-[linear-gradient(180deg,#244b84_0%,#5d88b8_100%)] text-3xl font-black text-white;
+  }
+
+  .poster-table-card {
+    @apply overflow-hidden rounded-[1.5rem] border border-white bg-white/85 shadow-[0_14px_26px_rgba(15,94,156,0.1)];
+  }
+
+  .poster-table-card--emerald .poster-table-header {
+    @apply bg-[linear-gradient(90deg,#2f7f69_0%,#3e9b7e_100%)];
+  }
+
+  .poster-table-card--orange .poster-table-header {
+    @apply bg-[linear-gradient(90deg,#bf5f37_0%,#da7b4d_100%)];
+  }
+
+  .poster-table-card--blue .poster-table-header {
+    @apply bg-[linear-gradient(90deg,#21578f_0%,#2e7bc4_100%)];
+  }
+
+  .poster-table-header {
+    @apply px-4 py-3 text-center text-xl font-black text-white;
+  }
+
+  .poster-field-row {
+    @apply border-b border-slate-200/80 pb-2 text-lg font-semibold text-slate-700 last:border-b-0;
+  }
+
+  .poster-stat-card {
+    @apply rounded-[1.5rem] border border-sky-100 bg-white/88 px-5 py-4 text-center shadow-[0_10px_22px_rgba(15,94,156,0.06)];
+  }
+
+  .poster-side-pill {
+    @apply inline-flex rounded-full bg-[linear-gradient(90deg,#224880_0%,#315f99_100%)] px-5 py-2 text-lg font-black text-white;
+  }
+
+  .poster-feature-card {
+    @apply flex items-start gap-4 rounded-[1.5rem] border border-sky-100 bg-slate-50/80 p-4;
+  }
+
+  .poster-feature-icon {
+    @apply flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-sky-100 text-lg font-black text-sky-700;
+  }
+
+  .poster-preview-card {
+    @apply block rounded-[1.7rem] border border-sky-100 bg-[linear-gradient(180deg,#fdfefe_0%,#eef6ff_100%)] p-3 shadow-[0_14px_28px_rgba(15,94,156,0.08)] transition hover:-translate-y-1;
+  }
+
+  .poster-preview-window {
+    @apply overflow-hidden rounded-[1.2rem] border border-slate-200 bg-white;
+  }
+
+  .poster-preview-topbar {
+    @apply flex items-center gap-2 border-b border-slate-200 bg-slate-50 px-3 py-2;
+  }
+
+  .poster-dot {
+    @apply h-3 w-3 rounded-full;
+  }
+
+  .poster-preview-body {
+    @apply space-y-4 p-4;
+  }
+
+  .poster-preview-label {
+    @apply mt-3 rounded-[1rem] bg-[linear-gradient(90deg,#244b84_0%,#315f99_100%)] px-4 py-3 text-center text-xl font-black text-white;
+  }
+
+  .poster-map-grid {
+    @apply grid grid-cols-3 gap-3 rounded-[1.4rem] bg-[linear-gradient(180deg,#ebf5ff_0%,#dbeeff_100%)] p-4;
+  }
+
+  .poster-map-pin {
+    @apply mx-auto h-5 w-5 rounded-full bg-sky-700 shadow-[0_0_0_6px_rgba(59,130,246,0.16)];
+  }
+
+  .poster-stack-card {
+    @apply rounded-[1.6rem] border border-sky-100 bg-white/88 px-4 py-6 text-center shadow-[0_10px_22px_rgba(15,94,156,0.06)];
+  }
+
+  .poster-stack-logo {
+    @apply mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-[linear-gradient(180deg,#f2f8ff_0%,#dcecff_100%)] text-xl font-black text-sky-700;
+  }
+
+  .poster-output-pill {
+    @apply rounded-[1rem] bg-[linear-gradient(90deg,#244b84_0%,#315f99_100%)] px-5 py-3 text-center text-xl font-black uppercase tracking-[0.06em] text-white;
+  }
+}
+
+@keyframes add-icon-float {
+  0%,
+  100% {
+    transform: translateY(0) scale(1) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-2px) scale(1.08) rotate(8deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .add-cta-icon {
+    animation: none;
+  }
+}
+
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  z-index: 0;
+}
