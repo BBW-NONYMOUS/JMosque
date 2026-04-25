@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import L from 'leaflet';
 import {
   AlertCircle,
@@ -7,11 +7,12 @@ import {
   Landmark,
   LoaderCircle,
   MapPin,
+  Navigation,
   PlusCircle,
   Save,
   User,
 } from 'lucide-react';
-import { MapContainer, Marker, TileLayer, useMapEvents } from 'react-leaflet';
+import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from 'react-leaflet';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
@@ -102,6 +103,44 @@ function LocationPicker({ onPick }) {
   return null;
 }
 
+/* ── Pan map when coordinates are typed manually ── */
+function DraggableMarker({ position, onPick }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (position) {
+      map.flyTo(position, map.getZoom() < 15 ? 16 : map.getZoom(), { duration: 0.6 });
+    }
+  }, [map, position]);
+
+  if (!position) return null;
+
+  return (
+    <Marker
+      draggable
+      position={position}
+      eventHandlers={{
+        dragend(event) {
+          const nextPosition = event.target.getLatLng();
+          onPick(nextPosition.lat, nextPosition.lng);
+        },
+      }}
+    />
+  );
+}
+
+function FlyToCoords({ lat, lng }) {
+  const map = useMap();
+  useEffect(() => {
+    const parsedLat = Number(lat);
+    const parsedLng = Number(lng);
+    if (lat !== '' && lng !== '' && Number.isFinite(parsedLat) && Number.isFinite(parsedLng)) {
+      map.flyTo([parsedLat, parsedLng], map.getZoom() < 13 ? 15 : map.getZoom(), { duration: 0.8 });
+    }
+  }, [lat, lng, map]);
+  return null;
+}
+
 /* ── Default values ── */
 const defaultValues = {
   mosque_name: '',
@@ -130,6 +169,7 @@ export default function MosqueForm({
   const [lng, setLng] = useState(
     initialValues.longitude !== '' ? String(initialValues.longitude) : ''
   );
+  const [locationStatus, setLocationStatus] = useState('');
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(initialValues.image_url || null);
 
@@ -139,9 +179,34 @@ export default function MosqueForm({
       : null;
 
   const handleMapPick = useCallback((pickedLat, pickedLng) => {
-    setLat(pickedLat.toFixed(6));
-    setLng(pickedLng.toFixed(6));
+    setLat(pickedLat.toFixed(7));
+    setLng(pickedLng.toFixed(7));
+    setLocationStatus('Pin updated.');
   }, []);
+
+  const handleUseCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationStatus('GPS is not supported by this browser.');
+      return;
+    }
+
+    setLocationStatus('Getting GPS location...');
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLat(position.coords.latitude.toFixed(7));
+        setLng(position.coords.longitude.toFixed(7));
+        setLocationStatus(`GPS pinned within about ${Math.round(position.coords.accuracy)} meters.`);
+      },
+      () => {
+        setLocationStatus('Unable to get GPS location. Allow location access and try again.');
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0,
+      }
+    );
+  };
 
   const handleImageChange = (e) => {
     const file = e.target.files?.[0] ?? null;
@@ -256,7 +321,7 @@ export default function MosqueForm({
 
           {/* Map picker */}
           <div className="overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
-            <div className="flex items-center gap-2.5 border-b border-slate-100 bg-slate-50 px-4 py-3">
+            <div className="flex flex-wrap items-center gap-2.5 border-b border-slate-100 bg-slate-50 px-4 py-3">
               <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-green-50">
                 <MapPin className="h-3.5 w-3.5 text-green-800" strokeWidth={2} />
               </div>
@@ -265,11 +330,19 @@ export default function MosqueForm({
                   Click on the map to pin the mosque location
                 </p>
                 <p className="text-xs text-slate-400">
-                  Or type coordinates manually below
+                  Drag the pin, use GPS, or type coordinates manually below
                 </p>
               </div>
+              <button
+                type="button"
+                onClick={handleUseCurrentLocation}
+                className="ml-auto inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-2 text-xs font-semibold text-emerald-800 shadow-sm transition hover:border-emerald-300 hover:bg-emerald-50"
+              >
+                <Navigation className="h-3.5 w-3.5" strokeWidth={2} />
+                Use GPS
+              </button>
               {markerPos && (
-                <span className="ml-auto rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-800">
+                <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-800">
                   📍 Pinned
                 </span>
               )}
@@ -286,10 +359,12 @@ export default function MosqueForm({
                   url={SATELLITE_TILE_LAYER.url}
                 />
                 <LocationPicker onPick={handleMapPick} />
-                {markerPos && <Marker position={markerPos} />}
+                <FlyToCoords lat={lat} lng={lng} />
+                <DraggableMarker position={markerPos} onPick={handleMapPick} />
               </MapContainer>
             </div>
           </div>
+          {locationStatus && <p className="text-xs font-medium text-slate-500">{locationStatus}</p>}
 
           {/* Coordinate inputs */}
           <div className="grid gap-4 sm:grid-cols-2">

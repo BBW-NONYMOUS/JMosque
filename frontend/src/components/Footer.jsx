@@ -60,7 +60,7 @@ export default function Footer() {
             <ul className="space-y-3">
               <li>
                 <a
-                  href="mailto:lgu.kalamansig@gmail.com"
+                  href="mailto:ncmf.osec@ncmf.gov.ph"
                   className="flex items-center gap-3 text-sm text-green-200 transition hover:text-white"
                 >
                   <Mail className="h-4 w-4 shrink-0 text-green-400" strokeWidth={2} />
