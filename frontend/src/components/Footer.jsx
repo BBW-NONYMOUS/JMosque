@@ -64,16 +64,7 @@ export default function Footer() {
                   className="flex items-center gap-3 text-sm text-green-200 transition hover:text-white"
                 >
                   <Mail className="h-4 w-4 shrink-0 text-green-400" strokeWidth={2} />
-                  lgu.kalamansig@gmail.com
-                </a>
-              </li>
-              <li>
-                <a
-                  href="tel:+639XXXXXXXXX"
-                  className="flex items-center gap-3 text-sm text-green-200 transition hover:text-white"
-                >
-                  <Phone className="h-4 w-4 shrink-0 text-green-400" strokeWidth={2} />
-                  +63 9XX XXX XXXX
+                  ncmf.osec@ncmf.gov.ph
                 </a>
               </li>
               <li>
