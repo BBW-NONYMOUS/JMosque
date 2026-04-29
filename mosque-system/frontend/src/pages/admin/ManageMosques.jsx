@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { AlertTriangle, ArrowUpDown, ExternalLink, Landmark, Loader2, MapPin, PlusCircle, Search, SquarePen, Trash2, X } from 'lucide-react';
+import { AlertTriangle, ArrowUpDown, Download, ExternalLink, Landmark, Loader2, MapPin, Printer, PlusCircle, Search, SquarePen, Trash2, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import useFetchMosques from '../../hooks/useFetchMosques';
 import { deleteMosque } from '../../services/api';
@@ -127,6 +127,29 @@ export default function ManageMosques() {
     return result;
   }, [mosques, search, sortBy]);
 
+  const handleDownload = () => {
+    const headers = ['Mosque Name', 'Barangay', 'Address', 'Imam Name', 'Description'];
+    const rows = filteredMosques.map((m) => [
+      m.mosque_name || '',
+      m.barangay || '',
+      m.address || '',
+      m.imam_name || '',
+      (m.description || '').replace(/"/g, '""'),
+    ]);
+    const csv = [headers, ...rows]
+      .map((r) => r.map((c) => `"${c}"`).join(','))
+      .join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'mosque-records.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handlePrint = () => window.print();
+
   const handleDeleteConfirm = async () => {
     try {
       setDeleting(true);
@@ -140,6 +163,14 @@ export default function ManageMosques() {
 
   return (
     <div className="space-y-6">
+      <style>{`
+        @media print {
+          body * { visibility: hidden; }
+          #mosque-print-area, #mosque-print-area * { visibility: visible; }
+          #mosque-print-area { position: absolute; inset: 0; padding: 24px; }
+          .print\\:hidden { display: none !important; }
+        }
+      `}</style>
 
       {/* ── HEADER ── */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -157,13 +188,33 @@ export default function ManageMosques() {
             )}
           </p>
         </div>
-        <Link
-          to="/admin/mosques/add"
-          className="btn-primary w-full justify-center sm:w-auto"
-        >
-          <PlusCircle className="add-cta-icon h-4 w-4" strokeWidth={2.2} />
-          Add Mosque
-        </Link>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center print:hidden">
+          <button
+            type="button"
+            onClick={handlePrint}
+            disabled={loading || mosques.length === 0}
+            className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-40"
+          >
+            <Printer className="h-4 w-4" strokeWidth={2} />
+            Print
+          </button>
+          <button
+            type="button"
+            onClick={handleDownload}
+            disabled={loading || mosques.length === 0}
+            className="flex items-center justify-center gap-2 rounded-xl border border-green-700 bg-white px-4 py-2.5 text-sm font-semibold text-green-800 shadow-sm transition hover:bg-green-50 disabled:opacity-40"
+          >
+            <Download className="h-4 w-4" strokeWidth={2} />
+            Download
+          </button>
+          <Link
+            to="/admin/mosques/add"
+            className="btn-primary w-full justify-center sm:w-auto"
+          >
+            <PlusCircle className="add-cta-icon h-4 w-4" strokeWidth={2.2} />
+            Add Mosque
+          </Link>
+        </div>
       </div>
 
       {/* ── SEARCH & SORT ── */}
@@ -214,6 +265,7 @@ export default function ManageMosques() {
       )}
 
       {/* ── CONTENT ── */}
+      <div id="mosque-print-area">
       {loading ? (
         <div className="space-y-4">
           {Array.from({ length: 4 }).map((_, i) => <SkeletonRow key={i} />)}
@@ -329,6 +381,7 @@ export default function ManageMosques() {
           ))}
         </div>
       )}
+      </div>{/* end #mosque-print-area */}
 
       {/* ── DELETE CONFIRM MODAL ── */}
       {confirmId && pendingMosque && (
