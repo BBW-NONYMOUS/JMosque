@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Mosque;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class MosqueController extends Controller
 {
@@ -131,8 +133,10 @@ class MosqueController extends Controller
                 'description' => $m->description,
                 'latitude'    => $m->latitude,
                 'longitude'   => $m->longitude,
+                'image'       => $m->image,
                 'image_url'   => $m->image_url,
                 'created_at'  => $m->created_at,
+                'updated_at'  => $m->updated_at,
             ];
         });
 
@@ -140,6 +144,70 @@ class MosqueController extends Controller
             'exported_at' => now()->toIso8601String(),
             'total'       => $mosques->count(),
             'data'        => $mosques,
+        ]);
+    }
+
+    public function import(Request $request): JsonResponse
+    {
+        $this->ensureAdmin($request);
+
+        $validated = Validator::make($request->all(), [
+            'mode' => ['nullable', 'in:merge,replace'],
+            'data' => ['required', 'array', 'min:1', 'max:10000'],
+            'data.*.id' => ['nullable', 'integer', 'min:1'],
+            'data.*.mosque_name' => ['required', 'string', 'max:255'],
+            'data.*.address' => ['required', 'string', 'max:255'],
+            'data.*.barangay' => ['required', 'string', 'max:150'],
+            'data.*.imam_name' => ['required', 'string', 'max:255'],
+            'data.*.description' => ['required', 'string'],
+            'data.*.latitude' => ['required', 'numeric', 'between:-90,90'],
+            'data.*.longitude' => ['required', 'numeric', 'between:-180,180'],
+            'data.*.image' => ['nullable', 'string', 'max:2048'],
+            'data.*.image_url' => ['nullable', 'string', 'max:2048'],
+            'data.*.created_at' => ['nullable', 'date'],
+            'data.*.updated_at' => ['nullable', 'date'],
+        ])->validate();
+
+        $mode = $validated['mode'] ?? 'merge';
+        $stats = [
+            'created' => 0,
+            'updated' => 0,
+            'replaced' => $mode === 'replace',
+            'total' => count($validated['data']),
+        ];
+
+        DB::transaction(function () use ($validated, $mode, &$stats): void {
+            if ($mode === 'replace') {
+                Mosque::query()->delete();
+            }
+
+            foreach ($validated['data'] as $record) {
+                $attributes = $this->backupRecordAttributes($record);
+                $mosque = $this->findImportTarget($record);
+
+                if ($mosque) {
+                    $mosque->update($attributes);
+                    $stats['updated']++;
+                    continue;
+                }
+
+                if (! empty($record['id']) && ! Mosque::whereKey($record['id'])->exists()) {
+                    DB::table('mosques')->insert($attributes + [
+                        'id' => $record['id'],
+                        'created_at' => $record['created_at'] ?? now(),
+                        'updated_at' => $record['updated_at'] ?? now(),
+                    ]);
+                } else {
+                    Mosque::create($attributes);
+                }
+
+                $stats['created']++;
+            }
+        });
+
+        return response()->json([
+            'message' => 'Backup imported successfully.',
+            'data' => $stats,
         ]);
     }
 
@@ -160,5 +228,34 @@ class MosqueController extends Controller
             'longitude' => ['required', 'numeric', 'between:-180,180'],
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
         ]);
+    }
+
+    private function backupRecordAttributes(array $record): array
+    {
+        return [
+            'mosque_name' => $record['mosque_name'],
+            'address' => $record['address'],
+            'barangay' => $record['barangay'],
+            'imam_name' => $record['imam_name'],
+            'description' => $record['description'],
+            'latitude' => $record['latitude'],
+            'longitude' => $record['longitude'],
+            'image' => $record['image'] ?? $record['image_url'] ?? null,
+        ];
+    }
+
+    private function findImportTarget(array $record): ?Mosque
+    {
+        if (! empty($record['id'])) {
+            $mosque = Mosque::find($record['id']);
+
+            if ($mosque) {
+                return $mosque;
+            }
+        }
+
+        return Mosque::where('mosque_name', $record['mosque_name'])
+            ->where('barangay', $record['barangay'])
+            ->first();
     }
 }

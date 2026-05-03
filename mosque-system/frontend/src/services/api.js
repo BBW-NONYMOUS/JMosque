@@ -101,4 +101,9 @@ export const exportBackup = async () => {
   return response.data;
 };
 
+export const importBackup = async (payload) => {
+  const response = await api.post('/backup/import', payload);
+  return response.data;
+};
+
 export default api;

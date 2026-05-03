@@ -21,7 +21,8 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::put('/mosques/{mosque}', [MosqueController::class, 'update']);
     Route::delete('/mosques/{mosque}', [MosqueController::class, 'destroy']);
 
-    // Admin-only: feedback list & backup export
+    // Admin-only: feedback list & backup import/export
     Route::get('/feedback', [FeedbackController::class, 'index']);
     Route::get('/backup/export', [MosqueController::class, 'export']);
+    Route::post('/backup/import', [MosqueController::class, 'import']);
 });

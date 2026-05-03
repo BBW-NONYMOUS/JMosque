@@ -54,20 +54,7 @@ export default function Footer() {
 
           {/* ── Contact ── */}
           <div>
-            <h4 className="mb-4 text-xs font-bold uppercase tracking-widest text-green-400">
-              Contact
-            </h4>
             <ul className="space-y-3">
-              <li>
-                <a
-                  href="mailto:lgu.kalamansig@gmail.com"
-                  className="flex items-center gap-3 text-sm text-green-200 transition hover:text-white"
-                >
-                  <Mail className="h-4 w-4 shrink-0 text-green-400" strokeWidth={2} />
-                  lgu.kalamansig@gmail.com
-                </a>
-              </li>
-
               <li>
                 <Link
                   to="/feedback"
